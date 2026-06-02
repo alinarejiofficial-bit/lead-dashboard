@@ -172,6 +172,17 @@ class LeadViewSet(viewsets.ModelViewSet):
             return [AllowAny()]
         return super().get_permissions()
 
+    def create(self, request, *args, **kwargs):
+        """Submit a new lead with duplicate email check."""
+        email = request.data.get('email', '').strip().lower()
+        if email:
+            if Lead.objects.filter(email__iexact=email).exists():
+                return Response(
+                    {"error": "Details are already collected for this email address."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        return super().create(request, *args, **kwargs)
+
     @action(detail=False, methods=['post'])
     def reset(self, request):
         Lead.objects.all().delete()

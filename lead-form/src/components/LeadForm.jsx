@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Mail, Phone, MapPin, Send, Lock, Check } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Send, Lock, Check, AlertCircle } from 'lucide-react';
 import './LeadForm.css';
 
 // Custom inline SVG logo matching the mockup (LeadFlow upward chart)
@@ -69,21 +69,23 @@ const LeadForm = () => {
     address: ''
   });
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showAlreadyCollectedModal, setShowAlreadyCollectedModal] = useState(false);
 
   // Close modal on Escape key press
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
         setShowSuccessModal(false);
+        setShowAlreadyCollectedModal(false);
       }
     };
-    if (showSuccessModal) {
+    if (showSuccessModal || showAlreadyCollectedModal) {
       window.addEventListener('keydown', handleKeyDown);
     }
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [showSuccessModal]);
+  }, [showSuccessModal, showAlreadyCollectedModal]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -104,11 +106,16 @@ const LeadForm = () => {
         body: JSON.stringify(formData),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error('Failed to submit form to backend');
+        if (response.status === 400 && data.error && data.error.includes("already collected")) {
+          setShowAlreadyCollectedModal(true);
+          return;
+        }
+        throw new Error(data.error || 'Failed to submit form to backend');
       }
 
-      const data = await response.json();
       console.log('Form submitted successfully:', data);
       setShowSuccessModal(true);
       setFormData({
@@ -119,7 +126,7 @@ const LeadForm = () => {
       });
     } catch (err) {
       console.error('Error submitting form:', err);
-      alert('Failed to submit details. Please make sure the backend server is running and try again.');
+      alert(err.message || 'Failed to submit details. Please make sure the backend server is running and try again.');
     }
   };
 
@@ -276,6 +283,27 @@ const LeadForm = () => {
             <p>Thank you for reaching out. We have successfully received your information and our team will get back to you shortly.</p>
             <button className="modal-dismiss-btn" onClick={() => setShowSuccessModal(false)}>
               Done
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Already Collected Centered Pop-up Modal */}
+      {showAlreadyCollectedModal && (
+        <div className="modal-overlay" onClick={() => setShowAlreadyCollectedModal(false)}>
+          <div className="modal-card warning-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="success-icon-container">
+              <div className="success-icon-bg">
+                <div className="warning-icon-ring"></div>
+                <div className="warning-icon-badge">
+                  <AlertCircle size={28} className="success-check-icon" />
+                </div>
+              </div>
+            </div>
+            <h3>Details Already Collected!</h3>
+            <p>We have already collected a submission with this email address. Rest assured, our team is already reviewing your request and will reach out to you shortly.</p>
+            <button className="modal-dismiss-btn warning-btn" onClick={() => setShowAlreadyCollectedModal(false)}>
+              Understood
             </button>
           </div>
         </div>
