@@ -1,54 +1,60 @@
 import React, { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 
-export default function LoginView({ users, onLogin }) {
+const API = 'http://127.0.0.1:8000/api';
+
+export default function LoginView({ onLogin }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loginType, setLoginType] = useState('agent'); // 'agent' or 'admin'
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email || !password) {
       setError('Please enter both email and password.');
       return;
     }
 
-    const foundUser = users.find(
-      (u) => u.email.toLowerCase() === email.toLowerCase() && u.password === password
-    );
+    setLoading(true);
+    setError('');
 
-    if (foundUser) {
-      // Enforce correct portal
-      if (foundUser.role !== loginType) {
-        setError(`Access Denied. Please use the ${foundUser.role.charAt(0).toUpperCase() + foundUser.role.slice(1)} Portal.`);
+    try {
+      const response = await fetch(`${API}/auth/login/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, loginType }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || 'Login failed. Please try again.');
         return;
       }
 
-      if (foundUser.status === 'inactive') {
-        setError('This account is currently deactivated. Contact Admin.');
-        return;
-      }
-      setError('');
-      onLogin(foundUser);
-    } else {
-      setError('Invalid email or password.');
+      onLogin(data.user, data.access, data.refresh);
+    } catch (err) {
+      setError('Cannot connect to server. Make sure the backend is running.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="login-screen">
       <div className="login-card">
-        
+
         <div className="login-tabs" style={{ display: 'flex', marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)' }}>
-          <button 
-            type="button" 
+          <button
+            type="button"
             onClick={() => { setLoginType('agent'); setError(''); }}
-            style={{ 
-              flex: 1, 
-              padding: '0.75rem', 
-              background: 'none', 
+            style={{
+              flex: 1,
+              padding: '0.75rem',
+              background: 'none',
               border: 'none',
               borderBottom: loginType === 'agent' ? '2px solid var(--accent)' : '2px solid transparent',
               color: loginType === 'agent' ? 'var(--accent)' : 'var(--text-secondary)',
@@ -59,13 +65,13 @@ export default function LoginView({ users, onLogin }) {
           >
             Agent Portal
           </button>
-          <button 
-            type="button" 
+          <button
+            type="button"
             onClick={() => { setLoginType('admin'); setError(''); }}
-            style={{ 
-              flex: 1, 
-              padding: '0.75rem', 
-              background: 'none', 
+            style={{
+              flex: 1,
+              padding: '0.75rem',
+              background: 'none',
               border: 'none',
               borderBottom: loginType === 'admin' ? '2px solid var(--accent)' : '2px solid transparent',
               color: loginType === 'admin' ? 'var(--accent)' : 'var(--text-secondary)',
@@ -110,6 +116,7 @@ export default function LoginView({ users, onLogin }) {
               className="form-input"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              disabled={loading}
             />
           </div>
 
@@ -123,6 +130,7 @@ export default function LoginView({ users, onLogin }) {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 style={{ width: '100%', paddingRight: '40px' }}
+                disabled={loading}
               />
               <button
                 type="button"
@@ -144,8 +152,12 @@ export default function LoginView({ users, onLogin }) {
             </div>
           </div>
 
-          <button type="submit" className="btn-primary">
-            {loginType === 'admin' ? 'Sign In to Admin Dashboard' : 'Sign In to Agent Pipeline'}
+          <button type="submit" className="btn-primary" disabled={loading}>
+            {loading
+              ? 'Signing in…'
+              : loginType === 'admin'
+                ? 'Sign In to Admin Dashboard'
+                : 'Sign In to Agent Pipeline'}
           </button>
         </form>
 

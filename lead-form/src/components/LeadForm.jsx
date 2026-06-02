@@ -208,6 +208,9 @@ const LeadForm = () => {
                   value={formData.phone}
                   onChange={handleChange}
                   required
+                  minLength={10}
+                  pattern="[0-9]{10,}"
+                  title="Phone number must be at least 10 digits (digits only)"
                   placeholder="Enter your phone number"
                 />
                 <div className="input-icon">

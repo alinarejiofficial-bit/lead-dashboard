@@ -1,5 +1,7 @@
 from django.db import models
 from datetime import datetime
+from django.contrib.auth.hashers import make_password
+
 
 class Lead(models.Model):
     id = models.CharField(max_length=100, primary_key=True)
@@ -33,3 +35,46 @@ class Lead(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.company})"
+
+
+class UserProfile(models.Model):
+    ROLE_CHOICES = [('admin', 'Admin'), ('agent', 'Agent')]
+    STATUS_CHOICES = [('active', 'Active'), ('inactive', 'Inactive')]
+
+    id = models.CharField(max_length=100, primary_key=True)
+    name = models.CharField(max_length=255)
+    email = models.EmailField(max_length=255, unique=True)
+    password = models.CharField(max_length=255)   # plain-text in input/db (automatically hashed on save)
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='agent')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
+    color = models.CharField(max_length=20, default='#6359E9')
+    joinedDate = models.CharField(max_length=20, blank=True, null=True)
+
+    @property
+    def is_authenticated(self):
+        return True
+
+    def save(self, *args, **kwargs):
+        if not self.id:
+            self.id = f"u-{int(datetime.now().timestamp() * 1000)}"
+        if not self.joinedDate:
+            self.joinedDate = datetime.now().strftime('%Y-%m-%d')
+        
+        # Hashing raw passwords securely
+        if self.password and not (self.password.startswith('pbkdf2_sha256$') or self.password.startswith('bcrypt$') or self.password.startswith('argon2$')):
+            self.password = make_password(self.password)
+            
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.name} ({self.role})"
+
+
+class UsedRefreshToken(models.Model):
+    jti = models.CharField(max_length=255, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Used Refresh Token: {self.jti}"
+
+

@@ -34,12 +34,99 @@ function App() {
     }, 5000);
   };
 
-  // Initialize and seed database from API / localStorage
+  const apiFetch = async (url, options = {}) => {
+    let token = localStorage.getItem('leadflow_token');
+    const headers = {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    let fetchOptions = {
+      ...options,
+      headers,
+    };
+
+    try {
+      let response = await fetch(url, fetchOptions);
+      if (response.status === 401) {
+        // Access token might be expired. Let's attempt to refresh it!
+        const refreshToken = localStorage.getItem('leadflow_refresh');
+        if (refreshToken) {
+          console.log('Access token expired. Attempting token refresh...');
+          try {
+            const refreshRes = await fetch('http://127.0.0.1:8000/api/auth/refresh/', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ refresh: refreshToken }),
+            });
+            
+            if (refreshRes.ok) {
+              const refreshData = await refreshRes.json();
+              console.log('Token refreshed successfully.');
+              
+              localStorage.setItem('leadflow_token', refreshData.access);
+              if (refreshData.refresh) {
+                localStorage.setItem('leadflow_refresh', refreshData.refresh);
+              }
+              
+              // Retry original request with new access token
+              headers['Authorization'] = `Bearer ${refreshData.access}`;
+              fetchOptions.headers = headers;
+              response = await fetch(url, fetchOptions);
+              
+              if (response.status === 401) {
+                throw new Error('Unauthorized after refresh');
+              }
+              return response;
+            } else {
+              throw new Error('Refresh token rejected');
+            }
+          } catch (refreshErr) {
+            console.warn('Token refresh failed. Revoking session.', refreshErr);
+            handleLogout();
+            triggerSuccessBanner('🔒 Your session has expired. Please sign in again.');
+            throw new Error('Unauthorized');
+          }
+        } else {
+          console.warn('Unauthorized request and no refresh token found. Revoking session.');
+          handleLogout();
+          triggerSuccessBanner('🔒 Your session has expired. Please sign in again.');
+          throw new Error('Unauthorized');
+        }
+      }
+      return response;
+    } catch (err) {
+      throw err;
+    }
+  };
+
+  // 1. Initialize logs and session on mount
   useEffect(() => {
-    // 1. Load Leads from Django API (with localStorage fallback)
+    const savedLogs = localStorage.getItem('leadflow_logs');
+    if (savedLogs) {
+      setLogs(JSON.parse(savedLogs));
+    } else {
+      localStorage.setItem('leadflow_logs', JSON.stringify(initialLogs));
+      setLogs(initialLogs);
+    }
+
+    const savedSession = localStorage.getItem('leadflow_current_user');
+    const token = localStorage.getItem('leadflow_token');
+    if (savedSession && token) {
+      const user = JSON.parse(savedSession);
+      setCurrentUser(user);
+    }
+  }, []);
+
+  // 2. Reactive leads and users loading after login / session restore
+  useEffect(() => {
+    if (!currentUser) return;
+
     const loadLeads = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:8000/api/leads/');
+        const response = await apiFetch('http://127.0.0.1:8000/api/leads/');
         if (!response.ok) throw new Error('API server returned error');
         const data = await response.json();
         setLeads(data);
@@ -57,31 +144,21 @@ function App() {
     };
     loadLeads();
 
-    // 2. Seed Users
-    const savedUsers = localStorage.getItem('leadflow_users');
-    if (savedUsers) {
-      setUsers(JSON.parse(savedUsers));
-    } else {
-      localStorage.setItem('leadflow_users', JSON.stringify(initialUsers));
-      setUsers(initialUsers);
-    }
-
-    // 3. Seed Logs
-    const savedLogs = localStorage.getItem('leadflow_logs');
-    if (savedLogs) {
-      setLogs(JSON.parse(savedLogs));
-    } else {
-      localStorage.setItem('leadflow_logs', JSON.stringify(initialLogs));
-      setLogs(initialLogs);
-    }
-
-    // 4. Persistence of session login
-    const savedSession = localStorage.getItem('leadflow_current_user');
-    if (savedSession) {
-      const user = JSON.parse(savedSession);
-      setCurrentUser(user);
-    }
-  }, []);
+    const loadUsers = async () => {
+      try {
+        const res = await apiFetch('http://127.0.0.1:8000/api/users/');
+        if (!res.ok) throw new Error('API error');
+        const data = await res.json();
+        setUsers(data);
+      } catch (err) {
+        console.warn('Could not load users from API. Using localStorage fallback.', err);
+        const savedUsers = localStorage.getItem('leadflow_users');
+        if (savedUsers) setUsers(JSON.parse(savedUsers));
+        else setUsers(initialUsers);
+      }
+    };
+    loadUsers();
+  }, [currentUser]);
 
   // Save changes helper
   const saveLeadsToStorage = (updatedLeads) => {
@@ -113,12 +190,18 @@ function App() {
   };
 
   // Actions
-  const handleLogin = (user) => {
+  const handleLogin = (user, token, refresh) => {
     setCurrentUser(user);
     if (user.role === 'admin' && user.email === 'alina@leadflow.com') {
       localStorage.setItem('leadflow_admin_session', 'true');
     }
     localStorage.setItem('leadflow_current_user', JSON.stringify(user));
+    if (token) {
+      localStorage.setItem('leadflow_token', token);
+    }
+    if (refresh) {
+      localStorage.setItem('leadflow_refresh', refresh);
+    }
     addLog(`${user.name} logged into the dashboard.`, 'note');
   };
 
@@ -129,6 +212,8 @@ function App() {
     setCurrentUser(null);
     localStorage.removeItem('leadflow_current_user');
     localStorage.removeItem('leadflow_admin_session');
+    localStorage.removeItem('leadflow_token');
+    localStorage.removeItem('leadflow_refresh');
   };
 
   const handleSandboxSwitch = (userId) => {
@@ -168,7 +253,7 @@ function App() {
 
     // Try backend API integration
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/leads/${leadId}/`, {
+      const response = await apiFetch(`http://127.0.0.1:8000/api/leads/${leadId}/`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedLeadData)
@@ -209,7 +294,7 @@ function App() {
 
     // Try backend API integration
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/leads/${leadId}/`, {
+      const response = await apiFetch(`http://127.0.0.1:8000/api/leads/${leadId}/`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedLeadData)
@@ -242,7 +327,7 @@ function App() {
 
     // Try backend API integration
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/leads/${leadId}/`, {
+      const response = await apiFetch(`http://127.0.0.1:8000/api/leads/${leadId}/`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedLeadData)
@@ -265,54 +350,77 @@ function App() {
   };
 
   // User Actions
-  const handleAddUser = (newUserObj) => {
+  const handleAddUser = async (newUserObj) => {
     if (!currentUser || currentUser.email !== 'alina@leadflow.com') {
       alert("Access Denied: Only Alina Reji is authorized to register new user accounts!");
       return;
     }
-    const newId = `u-${Date.now()}`;
-    const preparedUser = { ...newUserObj, id: newId };
-    
-    const updatedUsers = [...users, preparedUser];
-    saveUsersToStorage(updatedUsers);
-    
-    addLog(`Administrator Alina Reji registered new account: ${preparedUser.name}`, 'create');
-    triggerSuccessBanner(`🎉 Successfully registered new user "${preparedUser.name}" (${preparedUser.role.toUpperCase()})! They are active and can now log in using password "${preparedUser.password}".`);
+    try {
+      const res = await apiFetch('http://127.0.0.1:8000/api/users/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newUserObj),
+      });
+      if (!res.ok) throw new Error('API error');
+      const created = await res.json();
+      setUsers(prev => [...prev, created]);
+      addLog(`Administrator Alina Reji registered new account: ${created.name}`, 'create');
+      triggerSuccessBanner(`🎉 Successfully registered "${created.name}" (${created.role.toUpperCase()})!`);
+    } catch (err) {
+      console.error('Failed to create user via API', err);
+      alert('Failed to create user. Please try again.');
+    }
   };
 
-  const handleEditUser = (updatedUserObj) => {
+  const handleEditUser = async (updatedUserObj) => {
     if (!currentUser || currentUser.email !== 'alina@leadflow.com') {
       alert("Access Denied: Only Alina Reji is authorized to edit user accounts!");
       return;
     }
-    const updatedUsers = users.map(u => u.id === updatedUserObj.id ? updatedUserObj : u);
-    saveUsersToStorage(updatedUsers);
-    
-    // If Alina updated her own avatar/theme/details, update the session
-    if (currentUser.id === updatedUserObj.id) {
-      setCurrentUser(updatedUserObj);
-      localStorage.setItem('leadflow_current_user', JSON.stringify(updatedUserObj));
+    try {
+      const res = await apiFetch(`http://127.0.0.1:8000/api/users/${updatedUserObj.id}/`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedUserObj),
+      });
+      if (!res.ok) throw new Error('API error');
+      const updated = await res.json();
+      setUsers(prev => prev.map(u => u.id === updated.id ? updated : u));
+      if (currentUser.id === updated.id) {
+        setCurrentUser(updated);
+        localStorage.setItem('leadflow_current_user', JSON.stringify(updated));
+      }
+      addLog(`Administrator Alina Reji updated user account: ${updated.name}`, 'note');
+      triggerSuccessBanner(`🎉 Successfully updated "${updated.name}"!`);
+    } catch (err) {
+      console.error('Failed to update user via API', err);
+      alert('Failed to update user. Please try again.');
     }
-
-    addLog(`Administrator Alina Reji updated user account: ${updatedUserObj.name}`, 'note');
-    triggerSuccessBanner(`🎉 Successfully updated user account "${updatedUserObj.name}"!`);
   };
 
-  const handleToggleUserStatus = (userId) => {
+  const handleToggleUserStatus = async (userId) => {
     if (!currentUser || currentUser.email !== 'alina@leadflow.com') {
       alert("Access Denied: Only Alina Reji is authorized to alter user account statuses!");
       return;
     }
-    const updatedUsers = users.map(user => {
-      if (user.id === userId) {
-        const nextStatus = user.status === 'active' ? 'inactive' : 'active';
-        addLog(`Admin Alina Reji updated status of user ${user.name} to ${nextStatus.toUpperCase()}`, 'note');
-        triggerSuccessBanner(`User "${user.name}" account status has been updated to ${nextStatus.toUpperCase()}.`);
-        return { ...user, status: nextStatus };
-      }
-      return user;
-    });
-    saveUsersToStorage(updatedUsers);
+    const user = users.find(u => u.id === userId);
+    if (!user) return;
+    const nextStatus = user.status === 'active' ? 'inactive' : 'active';
+    try {
+      const res = await apiFetch(`http://127.0.0.1:8000/api/users/${userId}/`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...user, status: nextStatus }),
+      });
+      if (!res.ok) throw new Error('API error');
+      const updated = await res.json();
+      setUsers(prev => prev.map(u => u.id === updated.id ? updated : u));
+      addLog(`Admin Alina Reji updated status of ${user.name} to ${nextStatus.toUpperCase()}`, 'note');
+      triggerSuccessBanner(`User "${user.name}" status updated to ${nextStatus.toUpperCase()}.`);
+    } catch (err) {
+      console.error('Failed to toggle user status via API', err);
+      alert('Failed to update user status. Please try again.');
+    }
   };
 
   const handleResetDatabase = async () => {
@@ -322,7 +430,7 @@ function App() {
     }
     // Try backend API reset/seed
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/leads/reset/', {
+      const response = await apiFetch('http://127.0.0.1:8000/api/leads/reset/', {
         method: 'POST'
       });
       if (response.ok) {
@@ -469,9 +577,8 @@ function App() {
           )}
         </>
       ) : (
-        <LoginView 
-          users={users} 
-          onLogin={handleLogin} 
+        <LoginView
+          onLogin={handleLogin}
         />
       )}
     </div>
