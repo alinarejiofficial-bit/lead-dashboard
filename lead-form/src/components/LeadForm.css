@@ -367,4 +367,181 @@
   }
 }
 
+/* Success Modal Styling */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(10, 28, 63, 0.45);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeInOverlay 0.3s ease-out forwards;
+}
+
+.modal-card {
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 3rem 2.5rem 2.5rem 2.5rem;
+  width: 90%;
+  max-width: 440px;
+  text-align: center;
+  box-shadow: 
+    0 20px 25px -5px rgba(10, 28, 63, 0.1),
+    0 10px 10px -5px rgba(10, 28, 63, 0.04),
+    0 0 1px 0 rgba(10, 28, 63, 0.2);
+  transform: scale(0.9);
+  opacity: 0;
+  animation: scaleInCard 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Accent design details inside modal */
+.modal-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+}
+
+.success-icon-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.75rem;
+}
+
+.success-icon-bg {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.success-icon-ring {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background-color: rgba(16, 185, 129, 0.1);
+  animation: pulseRing 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+}
+
+.success-icon-badge {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 16px -4px rgba(16, 185, 129, 0.4);
+  z-index: 1;
+  animation: bounceCheck 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.15s both;
+}
+
+.success-check-icon {
+  stroke-width: 3px;
+}
+
+.modal-card h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin: 0 0 0.75rem 0;
+  letter-spacing: -0.3px;
+}
+
+.modal-card p {
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--text-muted);
+  margin: 0 0 2rem 0;
+}
+
+.modal-dismiss-btn {
+  width: 100%;
+  padding: 0.9rem;
+  background: linear-gradient(135deg, var(--primary) 0%, #0d48cb 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  box-shadow: 0 4px 12px -4px rgba(18, 83, 226, 0.3);
+  transition: all 0.2s ease;
+}
+
+.modal-dismiss-btn:hover {
+  background: linear-gradient(135deg, #1b5cf2 0%, #104cd6 100%);
+  box-shadow: 0 8px 16px -4px rgba(18, 83, 226, 0.4);
+  transform: translateY(-1px);
+}
+
+.modal-dismiss-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 6px -2px rgba(18, 83, 226, 0.2);
+}
+
+/* Animations */
+@keyframes fadeInOverlay {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scaleInCard {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes pulseRing {
+  0% {
+    transform: scale(0.7);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.2;
+  }
+  100% {
+    transform: scale(1.3);
+    opacity: 0;
+  }
+}
+
+@keyframes bounceCheck {
+  0% {
+    transform: scale(0);
+  }
+  70% {
+    transform: scale(1.15);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
 

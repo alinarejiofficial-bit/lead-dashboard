@@ -12,6 +12,14 @@ function App() {
   const [leads, setLeads] = useState([]);
   const [users, setUsers] = useState([]);
   const [logs, setLogs] = useState([]);
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem('leadflow_theme') || 'light';
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('leadflow_theme', theme);
+  }, [theme]);
 
   // Modals state
   const [detailLead, setDetailLead] = useState(null);
@@ -70,7 +78,8 @@ function App() {
     // 4. Persistence of session login
     const savedSession = localStorage.getItem('leadflow_current_user');
     if (savedSession) {
-      setCurrentUser(JSON.parse(savedSession));
+      const user = JSON.parse(savedSession);
+      setCurrentUser(user);
     }
   }, []);
 
@@ -106,6 +115,9 @@ function App() {
   // Actions
   const handleLogin = (user) => {
     setCurrentUser(user);
+    if (user.role === 'admin' && user.email === 'alina@leadflow.com') {
+      localStorage.setItem('leadflow_admin_session', 'true');
+    }
     localStorage.setItem('leadflow_current_user', JSON.stringify(user));
     addLog(`${user.name} logged into the dashboard.`, 'note');
   };
@@ -116,11 +128,12 @@ function App() {
     }
     setCurrentUser(null);
     localStorage.removeItem('leadflow_current_user');
+    localStorage.removeItem('leadflow_admin_session');
   };
 
   const handleSandboxSwitch = (userId) => {
-    // Session switching is restricted strictly to Alina Reji
-    if (!currentUser || currentUser.email !== 'alina@leadflow.com') {
+    // Session switching is restricted strictly to when an admin session is active
+    if (localStorage.getItem('leadflow_admin_session') !== 'true') {
       alert("Access Denied: Only Alina Reji is authorized to use the Sandbox Session Switcher!");
       return;
     }
@@ -348,13 +361,12 @@ function App() {
           {/* Dashboard Header Panel */}
           <header className="app-header">
             <div className="brand-section">
-              <div className="brand-logo">LF</div>
               <h2 className="brand-name">LeadFlow Dashboard</h2>
             </div>
 
             <div className="nav-actions">
               {/* Dev Sandbox Session Switcher (Alina Reji Only) */}
-              {currentUser.email === 'alina@leadflow.com' && (
+              {localStorage.getItem('leadflow_admin_session') === 'true' && (
                 <div className="sandbox-switcher">
                   <span className="sandbox-label">🧪 Sandbox Switcher:</span>
                   <select
@@ -401,6 +413,7 @@ function App() {
             
             {currentUser.role === 'admin' && currentUser.email === 'alina@leadflow.com' ? (
               <AdminDashboard
+                currentUser={currentUser}
                 leads={leads}
                 users={users}
                 logs={logs}
@@ -415,6 +428,10 @@ function App() {
                 }}
                 onViewLeadDetails={setDetailLead}
                 onResetDatabase={handleResetDatabase}
+                onAcceptLead={handleAcceptLead}
+                onUpdateLeadStatus={handleUpdateLeadStatus}
+                theme={theme}
+                onThemeChange={setTheme}
               />
             ) : (
               <AgentDashboard
@@ -423,6 +440,7 @@ function App() {
                 onAcceptLead={handleAcceptLead}
                 onUpdateLeadStatus={handleUpdateLeadStatus}
                 onViewLeadDetails={setDetailLead}
+                isAdminView={localStorage.getItem('leadflow_admin_session') === 'true'}
               />
             )}
           </main>

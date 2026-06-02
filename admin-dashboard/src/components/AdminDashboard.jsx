@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import AgentDashboard from './AgentDashboard';
 
 export default function AdminDashboard({
+  currentUser,
   leads,
   users,
   logs,
@@ -8,9 +10,13 @@ export default function AdminDashboard({
   onToggleUserStatus,
   onEditUserClick,
   onViewLeadDetails,
-  onResetDatabase
+  onResetDatabase,
+  onAcceptLead,
+  onUpdateLeadStatus,
+  theme,
+  onThemeChange
 }) {
-  const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard', 'leads', 'users', 'reports', 'settings'
+  const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard', 'leads', 'users', 'reports', 'settings', 'agentPortal'
 
   // Leads list states
   const [searchTerm, setSearchTerm] = useState('');
@@ -78,6 +84,40 @@ export default function AdminDashboard({
       case 'dashboard':
         return (
           <div className="main-content-panel">
+            {/* Welcome Banner Panel (Mockup Inspired) */}
+            <div className="welcome-banner-card">
+              <div className="welcome-banner-content">
+                <h1 className="welcome-banner-title">Welcome back, {currentUser.name}!</h1>
+                <p className="welcome-banner-text">
+                  Your pipeline is performing exceptionally well today. You have <strong>{openLeads} open leads</strong> waiting in the available pool!
+                </p>
+                <div className="welcome-banner-actions">
+                  <button 
+                    type="button" 
+                    className="welcome-btn-primary"
+                    onClick={() => setActiveTab('leads')}
+                  >
+                    📋 View Master Inventory
+                  </button>
+                  <button 
+                    type="button" 
+                    className="welcome-btn-secondary"
+                    onClick={() => setActiveTab('agentPortal')}
+                  >
+                    💼 Claim Available Leads
+                  </button>
+                </div>
+              </div>
+              <div className="welcome-banner-avatar-wrapper">
+                <div 
+                  className="welcome-banner-avatar"
+                  style={{ backgroundColor: currentUser.color || 'var(--accent)' }}
+                >
+                  {currentUser.name.split(' ').map(n => n[0]).join('')}
+                </div>
+              </div>
+            </div>
+
             {/* KPI Cards Grid */}
             <div className="kpi-grid">
               <div className="kpi-card" onClick={() => setActiveTab('leads')}>
@@ -575,6 +615,19 @@ export default function AdminDashboard({
           </div>
         );
 
+      case 'agentPortal':
+        return (
+          <div className="main-content-panel" style={{ padding: 0 }}>
+            <AgentDashboard
+              currentUser={currentUser}
+              leads={leads}
+              onAcceptLead={onAcceptLead}
+              onUpdateLeadStatus={onUpdateLeadStatus}
+              onViewLeadDetails={onViewLeadDetails}
+            />
+          </div>
+        );
+
       default:
         return null;
     }
@@ -628,6 +681,16 @@ export default function AdminDashboard({
           <li>
             <button
               type="button"
+              className={`sidebar-item ${activeTab === 'agentPortal' ? 'active' : ''}`}
+              onClick={() => setActiveTab('agentPortal')}
+            >
+              <span className="sidebar-item-icon">💼</span>
+              <span>Agent Portal</span>
+            </button>
+          </li>
+          <li>
+            <button
+              type="button"
               className={`sidebar-item ${activeTab === 'settings' ? 'active' : ''}`}
               onClick={() => setActiveTab('settings')}
             >
@@ -636,6 +699,49 @@ export default function AdminDashboard({
             </button>
           </li>
         </ul>
+
+        {/* Spacer to push user card and theme toggler to the bottom (Mockup Inspired) */}
+        <div style={{ flex: 1 }} />
+
+        {/* Bottom User Card (Mockup Inspired) */}
+        <div className="sidebar-user-card">
+          <div 
+            className="avatar" 
+            style={{ 
+              backgroundColor: currentUser.color || 'var(--accent)',
+              width: '34px',
+              height: '34px',
+              fontSize: '0.85rem'
+            }}
+          >
+            {currentUser.name.split(' ').map(n => n[0]).join('')}
+          </div>
+          <div className="sidebar-user-info">
+            <span className="sidebar-user-name">{currentUser.name}</span>
+            <span className="sidebar-user-status">
+              <span className="status-dot-active" /> Active
+            </span>
+          </div>
+          <span className="sidebar-user-chevron">↕️</span>
+        </div>
+
+        {/* Theme Toggle Capsule Switch (Mockup Inspired) */}
+        <div className="theme-toggle-capsule">
+          <button 
+            type="button"
+            className={`theme-btn ${theme === 'light' ? 'active' : ''}`}
+            onClick={() => onThemeChange('light')}
+          >
+            ☀️ Light
+          </button>
+          <button 
+            type="button"
+            className={`theme-btn ${theme === 'dark' ? 'active' : ''}`}
+            onClick={() => onThemeChange('dark')}
+          >
+            🌙 Dark
+          </button>
+        </div>
       </aside>
 
       {/* Main Content Area Right */}

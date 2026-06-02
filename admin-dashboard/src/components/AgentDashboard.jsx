@@ -5,7 +5,8 @@ export default function AgentDashboard({
   leads,
   onAcceptLead,
   onUpdateLeadStatus,
-  onViewLeadDetails
+  onViewLeadDetails,
+  isAdminView = false
 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [sourceFilter, setSourceFilter] = useState('All');
@@ -67,6 +68,38 @@ export default function AgentDashboard({
       {successMsg && (
         <div className="success-banner">
           <span>✨</span> {successMsg}
+        </div>
+      )}
+
+      {/* Welcome Banner Panel — hidden when admin is viewing via switcher */}
+      {!isAdminView && (
+        <div className="welcome-banner-card" style={{ marginBottom: '2rem' }}>
+          <div className="welcome-banner-content">
+            <h1 className="welcome-banner-title">Hello, {currentUser.name}!</h1>
+            <p className="welcome-banner-text">
+              Ready to claim some new contracts? There are currently <strong>{openLeads.length} open leads</strong> available in the pool!
+            </p>
+            <div className="welcome-banner-actions">
+              <button 
+                type="button" 
+                className="welcome-btn-primary"
+                onClick={() => {
+                  const searchInput = document.querySelector('.search-input');
+                  if (searchInput) searchInput.focus();
+                }}
+              >
+                🤝 Claim Leads Now
+              </button>
+            </div>
+          </div>
+          <div className="welcome-banner-avatar-wrapper">
+            <div 
+              className="welcome-banner-avatar"
+              style={{ backgroundColor: currentUser.color || 'var(--accent)' }}
+            >
+              {currentUser.name.split(' ').map(n => n[0]).join('')}
+            </div>
+          </div>
         </div>
       )}
 
@@ -257,8 +290,32 @@ export default function AgentDashboard({
                       </span>
                     </div>
 
-                    {lead.status === 'accepted' && (
+                      {/* Status Change Buttons */}
                       <div className="btn-action-group" style={{ marginTop: '0.25rem' }}>
+                        <button
+                          type="button"
+                          className="btn-sm"
+                          style={{ flex: 1, justifyContent: 'center' }}
+                          onClick={() => handleStatusChange(lead.id, 'accepted', lead.name)}
+                        >
+                          📞 Contacted
+                        </button>
+                        <button
+                          type="button"
+                          className="btn-sm"
+                          style={{ flex: 1, justifyContent: 'center' }}
+                          onClick={() => handleStatusChange(lead.id, 'interested', lead.name)}
+                        >
+                          👍 Interested
+                        </button>
+                        <button
+                          type="button"
+                          className="btn-sm"
+                          style={{ flex: 1, justifyContent: 'center' }}
+                          onClick={() => handleStatusChange(lead.id, 'not_interested', lead.name)}
+                        >
+                          👎 Not Interested
+                        </button>
                         <button
                           type="button"
                           className="btn-sm convert"
@@ -276,16 +333,14 @@ export default function AgentDashboard({
                           ❌ Drop
                         </button>
                       </div>
-                    )}
-                    
-                    <button
-                      type="button"
-                      className="btn-secondary"
-                      style={{ fontSize: '0.75rem', padding: '0.35rem', width: '100%', textContent: 'center' }}
-                      onClick={() => onViewLeadDetails(lead)}
-                    >
-                      ✏️ Edit Notes & Logs
-                    </button>
+                      <button
+                        type="button"
+                        className="btn-secondary"
+                        style={{ fontSize: '0.75rem', padding: '0.35rem', width: '100%', textAlign: 'center' }}
+                        onClick={() => onViewLeadDetails(lead)}
+                      >
+                        ✏️ Edit Notes & Logs
+                      </button>
                   </div>
                 ))}
               </div>

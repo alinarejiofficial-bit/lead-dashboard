@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { User, Mail, Phone, MapPin, Send, Lock } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { User, Mail, Phone, MapPin, Send, Lock, Check } from 'lucide-react';
 import './LeadForm.css';
 
 // Custom inline SVG logo matching the mockup (LeadFlow upward chart)
@@ -68,6 +68,22 @@ const LeadForm = () => {
     email: '',
     address: ''
   });
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  // Close modal on Escape key press
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setShowSuccessModal(false);
+      }
+    };
+    if (showSuccessModal) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [showSuccessModal]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -94,7 +110,7 @@ const LeadForm = () => {
 
       const data = await response.json();
       console.log('Form submitted successfully:', data);
-      alert('Form submitted successfully!');
+      setShowSuccessModal(true);
       setFormData({
         name: '',
         phone: '',
@@ -240,6 +256,27 @@ const LeadForm = () => {
           </div>
         </div>
       </div>
+
+      {/* Success Centered Pop-up Modal */}
+      {showSuccessModal && (
+        <div className="modal-overlay" onClick={() => setShowSuccessModal(false)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="success-icon-container">
+              <div className="success-icon-bg">
+                <div className="success-icon-ring"></div>
+                <div className="success-icon-badge">
+                  <Check size={28} className="success-check-icon" />
+                </div>
+              </div>
+            </div>
+            <h3>Submission Successful!</h3>
+            <p>Thank you for reaching out. We have successfully received your information and our team will get back to you shortly.</p>
+            <button className="modal-dismiss-btn" onClick={() => setShowSuccessModal(false)}>
+              Done
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
