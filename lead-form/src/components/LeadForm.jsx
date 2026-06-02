@@ -77,16 +77,34 @@ const LeadForm = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
-    alert('Form submitted successfully!');
-    setFormData({
-      name: '',
-      phone: '',
-      email: '',
-      address: ''
-    });
+    try {
+      const response = await fetch('http://127.0.0.1:8000/api/leads/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit form to backend');
+      }
+
+      const data = await response.json();
+      console.log('Form submitted successfully:', data);
+      alert('Form submitted successfully!');
+      setFormData({
+        name: '',
+        phone: '',
+        email: '',
+        address: ''
+      });
+    } catch (err) {
+      console.error('Error submitting form:', err);
+      alert('Failed to submit details. Please make sure the backend server is running and try again.');
+    }
   };
 
   return (
@@ -227,4 +245,3 @@ const LeadForm = () => {
 };
 
 export default LeadForm;
-
