@@ -1,0 +1,75 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  --primary: #1253e2;
+  --primary-hover: #0d42b9;
+  --bg-gradient-1: #f3f7fd;
+  --bg-gradient-2: #e9effb;
+  --text-dark: #0a1c3f;
+  --text-muted: #64748b;
+  --text-light: #94a3b8;
+  --border-color: #e2e8f0;
+  --input-focus-border: #a3c1f9;
+  --card-bg: #ffffff;
+  
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  
+  font-family: var(--font-sans);
+  color: var(--text-dark);
+  background: var(--bg-gradient-1);
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+  background: radial-gradient(circle at 10% 20%, rgba(226, 237, 255, 0.6) 0%, rgba(255, 255, 255, 0) 40%),
+              radial-gradient(circle at 90% 80%, rgba(220, 234, 255, 0.7) 0%, rgba(255, 255, 255, 0) 50%),
+              var(--bg-gradient-2);
+}
+
+/* Blurred background decorative elements - using fixed to prevent scrollbar extension */
+body::before,
+body::after {
+  content: '';
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(100px);
+  z-index: -1;
+  pointer-events: none;
+}
+
+body::before {
+  width: 400px;
+  height: 400px;
+  background: rgba(18, 83, 226, 0.08);
+  top: 10%;
+  left: -100px;
+}
+
+body::after {
+  width: 500px;
+  height: 500px;
+  background: rgba(18, 83, 226, 0.05);
+  bottom: -50px;
+  right: -150px;
+}
+
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+* {
+  box-sizing: border-box;
+}
+
