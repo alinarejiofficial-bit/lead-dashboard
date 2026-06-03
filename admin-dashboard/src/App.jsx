@@ -403,8 +403,10 @@ function App() {
   };
 
   const handleEditUser = async (updatedUserObj) => {
-    if (!currentUser || currentUser.email !== 'alina@leadflow.com') {
-      alert("Access Denied: Only Alina Reji is authorized to edit user accounts!");
+    if (!currentUser) return;
+    const isSelfUpdate = currentUser.id === updatedUserObj.id;
+    if (!isSelfUpdate && currentUser.email !== 'alina@leadflow.com') {
+      alert("Access Denied: Only Alina Reji is authorized to edit other user accounts!");
       return;
     }
     try {
@@ -572,6 +574,81 @@ function App() {
                       <p className="profile-menu-name">{currentUser.name}</p>
                       <p className="profile-menu-email">{currentUser.email}</p>
                     </div>
+                    <div className="profile-menu-divider" />
+                    
+                    {/* Change Avatar/Photo Feature */}
+                    <div style={{ padding: '0 0.5rem' }}>
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        id="user-profile-avatar-upload" 
+                        style={{ display: 'none' }} 
+                        onChange={(e) => {
+                          const file = e.target.files[0];
+                          if (!file) return;
+                          if (file.size > 2 * 1024 * 1024) {
+                            alert('Image size must be less than 2MB.');
+                            return;
+                          }
+                          const reader = new FileReader();
+                          reader.onload = async (event) => {
+                            const base64 = event.target.result;
+                            await handleEditUser({
+                              ...currentUser,
+                              avatar: base64
+                            });
+                            triggerSuccessBanner('📷 Avatar updated successfully!');
+                          };
+                          reader.readAsDataURL(file);
+                        }}
+                      />
+                      <label 
+                        htmlFor="user-profile-avatar-upload" 
+                        className="profile-menu-item"
+                        style={{ 
+                          cursor: 'pointer', 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          gap: '8px', 
+                          padding: '8px 16px',
+                          color: 'var(--text-secondary)',
+                          fontSize: '0.85rem',
+                          fontWeight: '500'
+                        }}
+                      >
+                        📷 Change Photo
+                      </label>
+                    </div>
+
+                    {currentUser.avatar && (
+                      <button
+                        type="button"
+                        className="profile-menu-item"
+                        style={{ 
+                          color: 'var(--color-rejected)', 
+                          fontSize: '0.85rem', 
+                          padding: '8px 24px',
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          gap: '8px',
+                          width: '100%',
+                          textAlign: 'left',
+                          background: 'none',
+                          border: 'none',
+                          cursor: 'pointer'
+                        }}
+                        onClick={async () => {
+                          await handleEditUser({
+                            ...currentUser,
+                            avatar: ''
+                          });
+                          triggerSuccessBanner('📷 Avatar removed.');
+                        }}
+                      >
+                        ❌ Remove Photo
+                      </button>
+                    )}
+
                     <div className="profile-menu-divider" />
                     <button 
                       type="button" 

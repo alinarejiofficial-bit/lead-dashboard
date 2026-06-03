@@ -156,6 +156,7 @@ class UserViewSet(viewsets.ModelViewSet):
             role=data.get('role', 'agent'),
             status=data.get('status', 'active'),
             color=data.get('color', '#6359E9'),
+            avatar=data.get('avatar', ''),
         )
         user.save()
         serializer = UserProfileSerializer(user)
@@ -164,14 +165,29 @@ class UserViewSet(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         """Update user fields. Password only updated if supplied."""
         instance = self.get_object()
+        
+        # Security check: users can only update their own profile unless they are an admin
+        if request.user.role != 'admin' and request.user.id != instance.id:
+            return Response(
+                {"error": "You do not have permission to edit this profile."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+            
         data = request.data
         instance.name = data.get('name', instance.name)
         instance.email = data.get('email', instance.email)
-        instance.role = data.get('role', instance.role)
-        instance.status = data.get('status', instance.status)
+        
+        # Only admin can change role or status
+        if request.user.role == 'admin':
+            instance.role = data.get('role', instance.role)
+            instance.status = data.get('status', instance.status)
+            
         instance.color = data.get('color', instance.color)
+        instance.avatar = data.get('avatar', instance.avatar)
+        
         if data.get('password'):
             instance.password = data['password']
+            
         instance.save()
         serializer = UserProfileSerializer(instance)
         return Response(serializer.data)

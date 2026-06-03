@@ -16,5 +16,5 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserProfile
-        fields = ['id', 'name', 'email', 'role', 'status', 'color', 'joinedDate', 'is_online']
+        fields = ['id', 'name', 'email', 'role', 'status', 'color', 'joinedDate', 'is_online', 'avatar']
         # password is intentionally excluded from responses

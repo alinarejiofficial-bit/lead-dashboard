@@ -17,6 +17,7 @@ export default function UserModal({ onClose, onAddUser, onEditUser, userToEdit }
   const [password, setPassword] = useState(userToEdit ? userToEdit.password : '');
   const [role, setRole] = useState(userToEdit ? userToEdit.role : 'agent');
   const [color, setColor] = useState(userToEdit ? userToEdit.color : AVATAR_COLORS[0]);
+  const [avatar, setAvatar] = useState(userToEdit ? (userToEdit.avatar || '') : '');
   const [avatarType, setAvatarType] = useState(userToEdit && userToEdit.avatar ? 'image' : 'color');
   const [avatarImage, setAvatarImage] = useState(userToEdit ? userToEdit.avatar : '');
   const [error, setError] = useState('');
@@ -33,6 +34,7 @@ export default function UserModal({ onClose, onAddUser, onEditUser, userToEdit }
     const reader = new FileReader();
     reader.onload = (event) => {
       setAvatarImage(event.target.result);
+      setAvatar(event.target.result);
       setError('');
     };
     reader.readAsDataURL(file);
@@ -56,7 +58,7 @@ export default function UserModal({ onClose, onAddUser, onEditUser, userToEdit }
       password,
       role,
       color,
-      avatar: avatarType === 'image' ? avatarImage : null
+      avatar: avatarType === 'image' ? (avatarImage || '') : ''
     };
 
     if (userToEdit) {

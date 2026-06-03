@@ -51,6 +51,7 @@ class UserProfile(models.Model):
     color = models.CharField(max_length=20, default='#6359E9')
     joinedDate = models.CharField(max_length=20, blank=True, null=True)
     last_activity = models.DateTimeField(null=True, blank=True)
+    avatar = models.TextField(blank=True, null=True)
 
     @property
     def is_online(self):
