@@ -42,7 +42,7 @@ export default function UserModal({ onClose, onAddUser, onEditUser, userToEdit, 
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!name || !email || !password) {
+    if (!name || !email || (!userToEdit && !password)) {
       setError('Please fill in all required fields.');
       return;
     }
@@ -55,11 +55,14 @@ export default function UserModal({ onClose, onAddUser, onEditUser, userToEdit, 
     const userData = {
       name,
       email,
-      password,
       role,
       color,
       avatar: avatarType === 'image' ? (avatarImage || '') : ''
     };
+
+    if (password) {
+      userData.password = password;
+    }
 
     if (userToEdit) {
       onEditUser({
@@ -132,15 +135,17 @@ export default function UserModal({ onClose, onAddUser, onEditUser, userToEdit, 
               </div>
 
               <div className="form-group">
-                <label className="form-label" htmlFor="user-pass">Login Password *</label>
+                <label className="form-label" htmlFor="user-pass">
+                  Login Password {userToEdit ? '(optional)' : '*'}
+                </label>
                 <input
                   id="user-pass"
                   type="password"
                   className="form-input"
-                  placeholder="Minimum 6 characters"
+                  placeholder={userToEdit ? "Leave blank to keep unchanged" : "Minimum 6 characters"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  required
+                  required={!userToEdit}
                 />
               </div>
 

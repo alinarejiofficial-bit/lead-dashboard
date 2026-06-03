@@ -569,91 +569,145 @@ function App() {
                   <ChevronDown size={14} className={`profile-chevron ${showProfileMenu ? 'rotate' : ''}`} />
                 </div>
 
-                {showProfileMenu && (
-                  <div className="profile-menu">
-                    <div className="profile-menu-header">
-                      <p className="profile-menu-name">{currentUser.name}</p>
-                      <p className="profile-menu-email">{currentUser.email}</p>
+                {showProfileMenu && (() => {
+                  const myLeads = leads.filter(l => l.assignedTo === currentUser.id);
+                  const myClaimed = myLeads.filter(l => l.status === 'accepted').length;
+                  const myConverted = myLeads.filter(l => l.status === 'converted').length;
+
+                  return (
+                    <div className="profile-menu-card">
+                      {/* Top Header: Settings & Logout */}
+                      <div className="profile-card-header">
+                        <button
+                          type="button"
+                          className="profile-card-header-btn"
+                          title="Edit Profile Settings"
+                          onClick={() => {
+                            setEditingUser(currentUser);
+                            setShowUserModal(true);
+                            setShowProfileMenu(false);
+                          }}
+                        >
+                          <Settings size={15} />
+                          <span>Settings</span>
+                        </button>
+                        <button
+                          type="button"
+                          className="profile-card-header-btn logout"
+                          title="Sign Out"
+                          onClick={() => {
+                            setShowProfileMenu(false);
+                            handleLogout();
+                          }}
+                        >
+                          <span>Logout</span>
+                          <LogOut size={15} />
+                        </button>
+                      </div>
+
+                      {/* Center Body: Large Avatar, Name, Email */}
+                      <div className="profile-card-body">
+                        <div 
+                          className="profile-card-avatar-wrapper"
+                          onClick={() => document.getElementById('user-profile-avatar-upload').click()}
+                          title="Click to change photo"
+                        >
+                          <div 
+                            className="avatar profile-card-avatar"
+                            style={{ backgroundColor: currentUser.color || 'var(--accent)' }}
+                          >
+                            {currentUser.avatar ? (
+                              <img src={currentUser.avatar} alt={currentUser.name} />
+                            ) : (
+                              currentUser.name.split(' ').map(n => n[0]).join('')
+                            )}
+                          </div>
+                          <div className="profile-card-avatar-overlay">
+                            <Camera size={18} />
+                          </div>
+                        </div>
+
+                        {/* Hidden File Input for Changing Photo */}
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          id="user-profile-avatar-upload" 
+                          style={{ display: 'none' }} 
+                          onChange={(e) => {
+                            const file = e.target.files[0];
+                            if (!file) return;
+                            if (file.size > 2 * 1024 * 1024) {
+                              alert('Image size must be less than 2MB.');
+                              return;
+                            }
+                            const reader = new FileReader();
+                            reader.onload = async (event) => {
+                              const base64 = event.target.result;
+                              await handleEditUser({
+                                ...currentUser,
+                                avatar: base64
+                              });
+                              triggerSuccessBanner('📷 Avatar updated successfully!');
+                            };
+                            reader.readAsDataURL(file);
+                          }}
+                        />
+
+                        <h4 className="profile-card-name">{currentUser.name}</h4>
+                        <p className="profile-card-role">
+                          {currentUser.role === 'admin' ? 'Administrator' : 'Sales Agent'}
+                        </p>
+
+                        {/* Optional Remove Photo Button */}
+                        {currentUser.avatar && (
+                          <button
+                            type="button"
+                            className="profile-card-remove-photo-btn"
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              await handleEditUser({
+                                ...currentUser,
+                                avatar: ''
+                              });
+                              triggerSuccessBanner('📷 Avatar removed.');
+                            }}
+                          >
+                            <Trash2 size={12} /> Remove Photo
+                          </button>
+                        )}
+
+                        <div className="profile-card-divider" />
+
+                        {/* Metrics Row: Claimed & Converted */}
+                        <div className="profile-card-metrics-grid">
+                          <div className="profile-card-metric-item">
+                            <span className="profile-card-metric-value text-accent">{myClaimed}</span>
+                            <span className="profile-card-metric-label">Claimed Leads</span>
+                          </div>
+                          <div className="profile-card-metric-value-divider" />
+                          <div className="profile-card-metric-item">
+                            <span className="profile-card-metric-value text-converted">{myConverted}</span>
+                            <span className="profile-card-metric-label">Converted</span>
+                          </div>
+                        </div>
+
+                        <div className="profile-card-divider" />
+                        
+                        <button
+                          type="button"
+                          className="profile-card-action-btn"
+                          onClick={() => {
+                            setEditingUser(currentUser);
+                            setShowUserModal(true);
+                            setShowProfileMenu(false);
+                          }}
+                        >
+                          View my profile
+                        </button>
+                      </div>
                     </div>
-                    <div className="profile-menu-divider" />
-
-                    <button
-                      type="button"
-                      className="profile-menu-item"
-                      onClick={() => {
-                        setEditingUser(currentUser);
-                        setShowUserModal(true);
-                        setShowProfileMenu(false);
-                      }}
-                    >
-                      <Settings size={16} />
-                      <span>Edit Profile</span>
-                    </button>
-                    
-                    {/* Change Avatar/Photo Feature */}
-                    <input 
-                      type="file" 
-                      accept="image/*" 
-                      id="user-profile-avatar-upload" 
-                      style={{ display: 'none' }} 
-                      onChange={(e) => {
-                        const file = e.target.files[0];
-                        if (!file) return;
-                        if (file.size > 2 * 1024 * 1024) {
-                          alert('Image size must be less than 2MB.');
-                          return;
-                        }
-                        const reader = new FileReader();
-                        reader.onload = async (event) => {
-                          const base64 = event.target.result;
-                          await handleEditUser({
-                            ...currentUser,
-                            avatar: base64
-                          });
-                          triggerSuccessBanner('📷 Avatar updated successfully!');
-                        };
-                        reader.readAsDataURL(file);
-                      }}
-                    />
-                    <label 
-                      htmlFor="user-profile-avatar-upload" 
-                      className="profile-menu-item"
-                    >
-                      <Camera size={16} />
-                      <span>Change Photo</span>
-                    </label>
-
-                    {currentUser.avatar && (
-                      <button
-                        type="button"
-                        className="profile-menu-item remove-btn"
-                        onClick={async () => {
-                          await handleEditUser({
-                            ...currentUser,
-                            avatar: ''
-                          });
-                          triggerSuccessBanner('📷 Avatar removed.');
-                        }}
-                      >
-                        <Trash2 size={16} />
-                        <span>Remove Photo</span>
-                      </button>
-                    )}
-
-                    <div className="profile-menu-divider" />
-                    <button 
-                      type="button" 
-                      className="profile-menu-item logout-btn" 
-                      onClick={() => {
-                        setShowProfileMenu(false);
-                        handleLogout();
-                      }}
-                    >
-                      <LogOut size={16} />
-                      <span>Logout</span>
-                    </button>
-                  </div>
-                )}
+                  );
+                })()}
               </div>
             </div>
           </header>
