@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Database, ChevronDown, Bell, BarChart3, LogOut } from 'lucide-react';
 import { initialUsers, initialLeads, initialLogs } from './data/mockData';
 import LoginView from './components/LoginView';
 import AdminDashboard from './components/AdminDashboard';
@@ -26,6 +27,21 @@ function App() {
   const [showUserModal, setShowUserModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [successMsg, setSuccessMsg] = useState('');
+  
+  // Profile dropdown menu state
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+
+  // Close profile dropdown when clicking outside
+  useEffect(() => {
+    if (!showProfileMenu) return;
+    const closeMenu = (e) => {
+      if (!e.target.closest('.user-profile-container')) {
+        setShowProfileMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', closeMenu);
+    return () => document.removeEventListener('mousedown', closeMenu);
+  }, [showProfileMenu]);
 
   const triggerSuccessBanner = (msg) => {
     setSuccessMsg(msg);
@@ -469,45 +485,90 @@ function App() {
           {/* Dashboard Header Panel */}
           <header className="app-header">
             <div className="brand-section">
-              <h2 className="brand-name">LeadFlow Dashboard</h2>
+              <div className="brand-logo-container">
+                <BarChart3 className="brand-logo-icon" size={18} />
+              </div>
+              <div className="brand-text-stack">
+                <h1 className="brand-name">LeadFlow</h1>
+                <span className="brand-subtitle">Dashboard</span>
+              </div>
             </div>
 
             <div className="nav-actions">
               {/* Dev Sandbox Session Switcher (Alina Reji Only) */}
               {localStorage.getItem('leadflow_admin_session') === 'true' && (
-                <div className="sandbox-switcher">
-                  <span className="sandbox-label">🧪 Sandbox Switcher:</span>
-                  <select
-                    className="sandbox-select"
-                    value={currentUser.id}
-                    onChange={(e) => handleSandboxSwitch(e.target.value)}
-                  >
-                    {users.map(u => (
-                      <option key={u.id} value={u.id}>
-                        {u.name} ({u.role}) {u.status === 'inactive' ? '[inactive]' : ''}
-                      </option>
-                    ))}
-                  </select>
+                <div className="sandbox-switcher-container">
+                  <div className="sandbox-switcher-label-pill">
+                    <Database size={13} className="switcher-icon" />
+                    <span>SANDBOX SWITCHER</span>
+                    <ChevronDown size={13} className="switcher-chevron" />
+                  </div>
+                  
+                  <div className="sandbox-switcher-select-pill">
+                    <span>
+                      {currentUser.name} ({currentUser.role})
+                    </span>
+                    <ChevronDown size={13} className="switcher-chevron" />
+                    <select
+                      className="sandbox-select-overlay"
+                      value={currentUser.id}
+                      onChange={(e) => handleSandboxSwitch(e.target.value)}
+                    >
+                      {users.map(u => (
+                        <option key={u.id} value={u.id}>
+                          {u.name} ({u.role}) {u.status === 'inactive' ? ' [inactive]' : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               )}
 
-              {/* User Account Info */}
-              <div className="user-profile">
-                <div 
-                  className="avatar" 
-                  style={{ backgroundColor: currentUser.color || 'var(--accent)' }}
-                >
-                  {currentUser.name.split(' ').map(n => n[0]).join('')}
-                </div>
-                <div className="user-info">
-                  <span className="user-display-name">{currentUser.name}</span>
-                  <span className="user-role-badge">{currentUser.role} Account</span>
-                </div>
-              </div>
-
-              <button className="logout-button" onClick={handleLogout}>
-                Sign Out
+              {/* Notification Bell */}
+              <button type="button" className="notification-btn" title="Notifications">
+                <Bell size={18} />
               </button>
+
+              {/* User Account Info Dropdown */}
+              <div className="user-profile-container" style={{ position: 'relative' }}>
+                <div 
+                  className={`user-profile-dropdown ${showProfileMenu ? 'active' : ''}`}
+                  onClick={() => setShowProfileMenu(!showProfileMenu)} 
+                  title="Profile Menu"
+                >
+                  <div 
+                    className="avatar-circle" 
+                    style={{ borderColor: currentUser.color || '#6366f1' }}
+                  >
+                    {currentUser.name.split(' ').map(n => n[0]).join('')}
+                  </div>
+                  <span className="user-profile-role">
+                    {currentUser.role === 'admin' ? 'Admin Account' : 'Agent Account'}
+                  </span>
+                  <ChevronDown size={14} className={`profile-chevron ${showProfileMenu ? 'rotate' : ''}`} />
+                </div>
+
+                {showProfileMenu && (
+                  <div className="profile-menu">
+                    <div className="profile-menu-header">
+                      <p className="profile-menu-name">{currentUser.name}</p>
+                      <p className="profile-menu-email">{currentUser.email}</p>
+                    </div>
+                    <div className="profile-menu-divider" />
+                    <button 
+                      type="button" 
+                      className="profile-menu-item logout-btn" 
+                      onClick={() => {
+                        setShowProfileMenu(false);
+                        handleLogout();
+                      }}
+                    >
+                      <LogOut size={16} />
+                      <span>Logout</span>
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </header>
 
