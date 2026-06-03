@@ -284,6 +284,15 @@
   color: #f87171;
 }
 
+.profile-menu-item.remove-btn {
+  color: #ef4444;
+}
+
+.profile-menu-item.remove-btn:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #f87171;
+}
+
 /* Dashboard Content Grid */
 .dashboard-content {
   flex: 1;
