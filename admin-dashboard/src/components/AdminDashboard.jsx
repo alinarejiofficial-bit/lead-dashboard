@@ -491,9 +491,121 @@ export default function AdminDashboard({
           return acc;
         }, {});
 
+        // Compute Agent specific performance
+        const agentPerformanceData = users
+          .filter(u => u.role === 'agent')
+          .map(agent => {
+            const stats = getUserMetrics(agent.id);
+            const totalAssigned = leads.filter(l => l.assignedTo === agent.id).length;
+            const converted = stats.converted;
+            const closed = stats.converted + stats.rejected;
+            const successRate = closed > 0 ? Math.round((stats.converted / closed) * 100) : 0;
+
+            return {
+              agent,
+              totalAssigned,
+              converted,
+              successRate,
+              closed
+            };
+          });
+
+        // Sort by converted desc, then by successRate desc to find the top performer
+        const sortedPerformance = [...agentPerformanceData].sort((a, b) => {
+          if (b.converted !== a.converted) return b.converted - a.converted;
+          return b.successRate - a.successRate;
+        });
+
+        const topPerformer = sortedPerformance[0];
+        const maxAssignedValue = Math.max(...agentPerformanceData.map(d => d.totalAssigned), 1);
+
         return (
           <div className="main-content-panel">
-            <div className="work-grid" style={{ gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+            {/* Top Performer Spotlight Card */}
+            {topPerformer && topPerformer.converted > 0 && (
+              <div className="top-performer-spotlight-card">
+                <div className="spotlight-badge">👑 Top Performer of the Month</div>
+                <div className="spotlight-flex-container">
+                  <div className="spotlight-user-profile">
+                    <div className="avatar spotlight-avatar" style={{ backgroundColor: topPerformer.agent.color }}>
+                      {topPerformer.agent.name.split(' ').map(n => n[0]).join('')}
+                    </div>
+                    <div className="spotlight-user-details">
+                      <h2 className="spotlight-user-name">{topPerformer.agent.name}</h2>
+                      <p className="spotlight-user-email">{topPerformer.agent.email}</p>
+                    </div>
+                  </div>
+
+                  <div className="spotlight-metrics-grid">
+                    <div className="spotlight-metric-item">
+                      <span className="spotlight-metric-label">Sales Converted</span>
+                      <span className="spotlight-metric-value text-converted">{topPerformer.converted} Leads</span>
+                    </div>
+                    <div className="spotlight-metric-item">
+                      <span className="spotlight-metric-label">Conversion Rate</span>
+                      <span className="spotlight-metric-value text-purple">{topPerformer.successRate}%</span>
+                    </div>
+                    <div className="spotlight-metric-item">
+                      <span className="spotlight-metric-label">Total Assigned</span>
+                      <span className="spotlight-metric-value text-secondary">{topPerformer.totalAssigned} Leads</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="work-grid" style={{ gridTemplateColumns: '1.25fr 1fr', gap: '1.5rem' }}>
+              {/* Agent Performance Bar Graph */}
+              <div className="panel">
+                <div className="panel-header">
+                  <h3 className="panel-title">
+                    <span>📊</span> Performance Comparison
+                  </h3>
+                  <div className="graph-legend">
+                    <span className="legend-item"><span className="legend-dot claimed" /> Claimed</span>
+                    <span className="legend-item"><span className="legend-dot converted" /> Converted</span>
+                  </div>
+                </div>
+                <div className="panel-body">
+                  <div className="performance-chart-container">
+                    {agentPerformanceData.map(data => {
+                      const claimedHeight = `${Math.max((data.totalAssigned / maxAssignedValue) * 100, 8)}%`;
+                      const convertedHeight = `${Math.max((data.converted / maxAssignedValue) * 100, 8)}%`;
+
+                      return (
+                        <div key={data.agent.id} className="chart-column-group">
+                          <div className="chart-bars-wrapper">
+                            <div className="chart-bar-hover-zone">
+                              <div 
+                                className="chart-bar claimed-bar" 
+                                style={{ height: claimedHeight }}
+                                title={`${data.agent.name}: ${data.totalAssigned} Claimed`}
+                              >
+                                <span className="bar-val-label">{data.totalAssigned}</span>
+                              </div>
+                              <div 
+                                className="chart-bar converted-bar" 
+                                style={{ height: convertedHeight }}
+                                title={`${data.agent.name}: ${data.converted} Converted`}
+                              >
+                                <span className="bar-val-label">{data.converted}</span>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="chart-label-wrapper">
+                            <div className="avatar chart-avatar" style={{ backgroundColor: data.agent.color }}>
+                              {data.agent.name.split(' ').map(n => n[0]).join('')}
+                            </div>
+                            <span className="chart-agent-name">{data.agent.name.split(' ')[0]}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
               {/* Lead Source Breakdown Chart Panel */}
               <div className="panel">
                 <div className="panel-header">
@@ -528,41 +640,39 @@ export default function AdminDashboard({
                   </div>
                 </div>
               </div>
+            </div>
 
-              {/* Agent Performance Panel */}
-              <div className="panel">
-                <div className="panel-header">
-                  <h3 className="panel-title">
-                    <span>🏆</span> Agent Conversion Leaderboard
-                  </h3>
-                </div>
-                <div className="panel-body">
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    {users.filter(u => u.role === 'agent').map(agent => {
-                      const stats = getUserMetrics(agent.id);
-                      const closed = stats.converted + stats.rejected;
-                      const rate = closed > 0 ? Math.round((stats.converted / closed) * 100) : 0;
-                      return (
-                        <div key={agent.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <div className="avatar" style={{ backgroundColor: agent.color, width: '28px', height: '28px', fontSize: '0.8rem' }}>
-                              {agent.name.split(' ').map(n => n[0]).join('')}
-                            </div>
-                            <div>
-                              <div style={{ fontSize: '0.85rem', fontWeight: '600' }}>{agent.name}</div>
-                              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Claimed: {stats.claimed} | Closed: {closed}</div>
-                            </div>
-                          </div>
-                          <div style={{ textAlign: 'right' }}>
-                            <div style={{ fontSize: '0.9rem', fontWeight: '700', color: 'var(--color-converted)' }}>
-                              {rate}% Converted
-                            </div>
-                            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{stats.converted} sales</div>
+            {/* Detailed Leaderboard list at the bottom */}
+            <div className="panel" style={{ marginTop: '1.5rem', marginBottom: '0.5rem' }}>
+              <div className="panel-header">
+                <h3 className="panel-title">
+                  <span>🏆</span> Agent Conversion Leaderboard
+                </h3>
+              </div>
+              <div className="panel-body">
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
+                  {sortedPerformance.map((data, index) => (
+                    <div key={data.agent.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', padding: '1rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.15rem' }}>
+                          <span style={{ fontSize: '0.75rem', fontWeight: '800', color: 'var(--text-muted)' }}>#{index + 1}</span>
+                          <div className="avatar" style={{ backgroundColor: data.agent.color, width: '32px', height: '32px', fontSize: '0.85rem' }}>
+                            {data.agent.name.split(' ').map(n => n[0]).join('')}
                           </div>
                         </div>
-                      );
-                    })}
-                  </div>
+                        <div>
+                          <div style={{ fontSize: '0.9rem', fontWeight: '700' }}>{data.agent.name}</div>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Claimed: {data.totalAssigned} | Closed: {data.closed}</div>
+                        </div>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontSize: '1rem', fontWeight: '800', color: 'var(--color-converted)' }}>
+                          {data.successRate}%
+                        </div>
+                        <div style={{ fontSize: '0.725rem', color: 'var(--text-muted)' }}>{data.converted} sales</div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
