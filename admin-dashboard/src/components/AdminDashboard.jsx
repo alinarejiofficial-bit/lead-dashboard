@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AgentDashboard from './AgentDashboard';
 
 export default function AdminDashboard({
@@ -16,7 +16,13 @@ export default function AdminDashboard({
   theme,
   onThemeChange
 }) {
-  const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard', 'leads', 'users', 'reports', 'settings', 'agentPortal'
+  const [activeTab, setActiveTab] = useState(() => {
+    return localStorage.getItem('leadflow_admin_active_tab') || 'dashboard';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('leadflow_admin_active_tab', activeTab);
+  }, [activeTab]);
 
   // Leads list states
   const [searchTerm, setSearchTerm] = useState('');

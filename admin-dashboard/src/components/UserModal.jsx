@@ -11,7 +11,7 @@ const AVATAR_COLORS = [
   '#05c46b'  // Green
 ];
 
-export default function UserModal({ onClose, onAddUser, onEditUser, userToEdit }) {
+export default function UserModal({ onClose, onAddUser, onEditUser, userToEdit, currentUser }) {
   const [name, setName] = useState(userToEdit ? userToEdit.name : '');
   const [email, setEmail] = useState(userToEdit ? userToEdit.email : '');
   const [password, setPassword] = useState(userToEdit ? userToEdit.password : '');
@@ -152,7 +152,7 @@ export default function UserModal({ onClose, onAddUser, onEditUser, userToEdit }
                   style={{ width: '100%', height: '42px', padding: '0.5rem' }}
                   value={role}
                   onChange={(e) => setRole(e.target.value)}
-                  disabled={userToEdit && userToEdit.id === 'u-1'} // Alina Reji cannot have her primary admin role downgraded
+                  disabled={(userToEdit && userToEdit.id === 'u-1') || (currentUser && currentUser.email !== 'alina@leadflow.com')}
                 >
                   <option value="agent">Agent (Lead Pool Access)</option>
                   <option value="admin">Administrator (Full Controls)</option>

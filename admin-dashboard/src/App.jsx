@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Database, ChevronDown, Bell, BarChart3, LogOut, Camera, Trash2 } from 'lucide-react';
+import { Database, ChevronDown, Bell, BarChart3, LogOut, Camera, Trash2, Settings } from 'lucide-react';
 import { initialUsers, initialLeads, initialLogs } from './data/mockData';
 import LoginView from './components/LoginView';
 import AdminDashboard from './components/AdminDashboard';
@@ -244,6 +244,7 @@ function App() {
     localStorage.removeItem('leadflow_admin_session');
     localStorage.removeItem('leadflow_token');
     localStorage.removeItem('leadflow_refresh');
+    localStorage.removeItem('leadflow_admin_active_tab');
   };
 
   const handleSandboxSwitch = (userId) => {
@@ -575,6 +576,19 @@ function App() {
                       <p className="profile-menu-email">{currentUser.email}</p>
                     </div>
                     <div className="profile-menu-divider" />
+
+                    <button
+                      type="button"
+                      className="profile-menu-item"
+                      onClick={() => {
+                        setEditingUser(currentUser);
+                        setShowUserModal(true);
+                        setShowProfileMenu(false);
+                      }}
+                    >
+                      <Settings size={16} />
+                      <span>Edit Profile</span>
+                    </button>
                     
                     {/* Change Avatar/Photo Feature */}
                     <input 
@@ -697,7 +711,7 @@ function App() {
           )}
 
           {/* User registration modal */}
-          {showUserModal && currentUser.email === 'alina@leadflow.com' && (
+          {showUserModal && (
             <UserModal
               onClose={() => {
                 setShowUserModal(false);
@@ -706,6 +720,7 @@ function App() {
               onAddUser={handleAddUser}
               onEditUser={handleEditUser}
               userToEdit={editingUser}
+              currentUser={currentUser}
             />
           )}
         </>
