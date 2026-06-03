@@ -552,9 +552,13 @@ function App() {
                 >
                   <div 
                     className="avatar-circle" 
-                    style={{ borderColor: currentUser.color || '#6366f1' }}
+                    style={{ borderColor: currentUser.color || '#6366f1', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                   >
-                    {currentUser.name.split(' ').map(n => n[0]).join('')}
+                    {currentUser.avatar ? (
+                      <img src={currentUser.avatar} alt={currentUser.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      currentUser.name.split(' ').map(n => n[0]).join('')
+                    )}
                   </div>
                   <span className="user-profile-role">
                     {currentUser.role === 'admin' ? 'Admin Account' : 'Agent Account'}

@@ -111,9 +111,13 @@ export default function AdminDashboard({
               <div className="welcome-banner-avatar-wrapper">
                 <div 
                   className="welcome-banner-avatar"
-                  style={{ backgroundColor: currentUser.color || 'var(--accent)' }}
+                  style={{ backgroundColor: currentUser.color || 'var(--accent)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                 >
-                  {currentUser.name.split(' ').map(n => n[0]).join('')}
+                  {currentUser.avatar ? (
+                    <img src={currentUser.avatar} alt={currentUser.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    currentUser.name.split(' ').map(n => n[0]).join('')
+                  )}
                 </div>
               </div>
             </div>
@@ -404,8 +408,12 @@ export default function AdminDashboard({
                           <tr key={u.id}>
                             <td>
                               <div className="user-cell">
-                                <div className="avatar" style={{ backgroundColor: u.color, width: '32px', height: '32px', fontSize: '0.85rem' }}>
-                                  {u.name.split(' ').map(n => n[0]).join('')}
+                                <div className="avatar" style={{ backgroundColor: u.color, width: '32px', height: '32px', fontSize: '0.85rem', overflow: 'hidden' }}>
+                                  {u.avatar ? (
+                                    <img src={u.avatar} alt={u.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                  ) : (
+                                    u.name.split(' ').map(n => n[0]).join('')
+                                  )}
                                 </div>
                                 <div className="user-cell-info">
                                   <span className="user-cell-name">{u.name}</span>
@@ -527,8 +535,12 @@ export default function AdminDashboard({
                 <div className="spotlight-badge">👑 Top Performer of the Month</div>
                 <div className="spotlight-flex-container">
                   <div className="spotlight-user-profile">
-                    <div className="avatar spotlight-avatar" style={{ backgroundColor: topPerformer.agent.color }}>
-                      {topPerformer.agent.name.split(' ').map(n => n[0]).join('')}
+                    <div className="avatar spotlight-avatar" style={{ backgroundColor: topPerformer.agent.color, overflow: 'hidden' }}>
+                      {topPerformer.agent.avatar ? (
+                        <img src={topPerformer.agent.avatar} alt={topPerformer.agent.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        topPerformer.agent.name.split(' ').map(n => n[0]).join('')
+                      )}
                     </div>
                     <div className="spotlight-user-details">
                       <h2 className="spotlight-user-name">{topPerformer.agent.name}</h2>
@@ -594,8 +606,12 @@ export default function AdminDashboard({
                           </div>
                           
                           <div className="chart-label-wrapper">
-                            <div className="avatar chart-avatar" style={{ backgroundColor: data.agent.color }}>
-                              {data.agent.name.split(' ').map(n => n[0]).join('')}
+                            <div className="avatar chart-avatar" style={{ backgroundColor: data.agent.color, overflow: 'hidden' }}>
+                              {data.agent.avatar ? (
+                                <img src={data.agent.avatar} alt={data.agent.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                              ) : (
+                                data.agent.name.split(' ').map(n => n[0]).join('')
+                              )}
                             </div>
                             <span className="chart-agent-name">{data.agent.name.split(' ')[0]}</span>
                           </div>
@@ -656,8 +672,12 @@ export default function AdminDashboard({
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.15rem' }}>
                           <span style={{ fontSize: '0.75rem', fontWeight: '800', color: 'var(--text-muted)' }}>#{index + 1}</span>
-                          <div className="avatar" style={{ backgroundColor: data.agent.color, width: '32px', height: '32px', fontSize: '0.85rem' }}>
-                            {data.agent.name.split(' ').map(n => n[0]).join('')}
+                          <div className="avatar" style={{ backgroundColor: data.agent.color, width: '32px', height: '32px', fontSize: '0.85rem', overflow: 'hidden' }}>
+                            {data.agent.avatar ? (
+                              <img src={data.agent.avatar} alt={data.agent.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            ) : (
+                              data.agent.name.split(' ').map(n => n[0]).join('')
+                            )}
                           </div>
                         </div>
                         <div>
@@ -823,10 +843,15 @@ export default function AdminDashboard({
               backgroundColor: currentUser.color || 'var(--accent)',
               width: '34px',
               height: '34px',
-              fontSize: '0.85rem'
+              fontSize: '0.85rem',
+              overflow: 'hidden'
             }}
           >
-            {currentUser.name.split(' ').map(n => n[0]).join('')}
+            {currentUser.avatar ? (
+              <img src={currentUser.avatar} alt={currentUser.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : (
+              currentUser.name.split(' ').map(n => n[0]).join('')
+            )}
           </div>
           <div className="sidebar-user-info">
             <span className="sidebar-user-name">{currentUser.name}</span>

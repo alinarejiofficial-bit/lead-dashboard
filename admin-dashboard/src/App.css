@@ -1319,6 +1319,43 @@
   }
 }
 
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  text-align: left;
+}
+
+.form-label {
+  font-size: 0.725rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.form-input {
+  width: 100%;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 0.65rem 1rem;
+  border-radius: var(--radius-md);
+  font-size: 0.9rem;
+  outline: none;
+  transition: all var(--transition-fast);
+}
+
+.form-input:focus {
+  border-color: var(--accent);
+  background: var(--bg-secondary);
+  box-shadow: 0 0 0 2px var(--accent-light);
+}
+
+.form-input::placeholder {
+  color: var(--text-muted);
+}
+
 /* Lead Detail Timeline and Notes styling */
 .lead-detail-grid {
   display: grid;
@@ -1908,4 +1945,247 @@
     height: 64px;
     font-size: 1.5rem;
   }
+}
+
+/* Reports Panel Top Performer Spotlight Card */
+.top-performer-spotlight-card {
+  background: linear-gradient(135deg, #090a0f, #1a1b23);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-lg);
+  padding: 1.75rem 2rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  position: relative;
+  overflow: hidden;
+  animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-theme='dark'] .top-performer-spotlight-card {
+  background: linear-gradient(135deg, #050507, #0f1015);
+  border-color: rgba(255, 255, 255, 0.05);
+}
+
+.spotlight-badge {
+  display: inline-block;
+  background: linear-gradient(90deg, #f59e0b, #d97706);
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.75px;
+  padding: 0.3rem 0.75rem;
+  border-radius: var(--radius-full);
+  margin-bottom: 1.25rem;
+  box-shadow: 0 4px 10px rgba(245, 158, 11, 0.35);
+  text-transform: uppercase;
+}
+
+.spotlight-flex-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.spotlight-user-profile {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.spotlight-avatar {
+  width: 56px;
+  height: 56px;
+  font-size: 1.5rem;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+}
+
+.spotlight-user-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  text-align: left;
+}
+
+.spotlight-user-name {
+  color: #ffffff;
+  font-size: 1.35rem;
+  font-weight: 800;
+  margin: 0;
+}
+
+.spotlight-user-email {
+  color: #94a3b8;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.spotlight-metrics-grid {
+  display: flex;
+  gap: 2rem;
+}
+
+.spotlight-metric-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  text-align: right;
+}
+
+.spotlight-metric-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.spotlight-metric-value {
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.spotlight-metric-value.text-converted {
+  color: #10b981;
+}
+
+.spotlight-metric-value.text-purple {
+  color: #a78bfa;
+}
+
+.spotlight-metric-value.text-secondary {
+  color: #e2e8f0;
+}
+
+@media (max-width: 640px) {
+  .spotlight-flex-container {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.5rem;
+  }
+  .spotlight-metrics-grid {
+    width: 100%;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  .spotlight-metric-item {
+    text-align: left;
+  }
+}
+
+/* Custom CSS/Flex Agent Performance Bar Chart */
+.graph-legend {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--text-secondary);
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+.legend-dot.claimed {
+  background: var(--accent);
+}
+
+.legend-dot.converted {
+  background: var(--color-converted);
+}
+
+.performance-chart-container {
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-end;
+  height: 240px;
+  padding: 1.5rem 0.5rem 0.5rem 0.5rem;
+  border-bottom: 2px solid var(--border-color);
+  gap: 1rem;
+}
+
+.chart-column-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  height: 100%;
+  max-width: 100px;
+}
+
+.chart-bars-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.chart-bar-hover-zone {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.35rem;
+  height: 100%;
+}
+
+.chart-bar {
+  width: 18px;
+  border-radius: 4px 4px 0 0;
+  position: relative;
+  transition: all var(--transition-normal);
+  display: flex;
+  justify-content: center;
+}
+
+.chart-bar.claimed-bar {
+  background: linear-gradient(to top, var(--accent), #818cf8);
+  box-shadow: 0 4px 10px rgba(99, 102, 241, 0.15);
+}
+
+.chart-bar.converted-bar {
+  background: linear-gradient(to top, var(--color-converted), #34d399);
+  box-shadow: 0 4px 10px rgba(16, 185, 129, 0.15);
+}
+
+.chart-bar:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+}
+
+.bar-val-label {
+  position: absolute;
+  top: -1.25rem;
+  font-size: 0.725rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.chart-label-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.75rem;
+}
+
+.chart-avatar {
+  width: 24px;
+  height: 24px;
+  font-size: 0.7rem;
+}
+
+.chart-agent-name {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
 }
