@@ -98,6 +98,11 @@ def login_view(request):
             status=status.HTTP_403_FORBIDDEN
         )
 
+    # Update user's last activity on successful login
+    from django.utils import timezone
+    user.last_activity = timezone.now()
+    user.save(update_fields=['last_activity'])
+
     # Generate JWT Refresh and Access Tokens
     refresh = RefreshToken()
     refresh['user_id'] = user.id
@@ -110,6 +115,18 @@ def login_view(request):
         "access": str(refresh.access_token),
         "refresh": str(refresh)
     }, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+def logout_view(request):
+    """
+    POST /api/auth/logout/
+    Marks the user as offline immediately by clearing their last_activity.
+    """
+    user = request.user
+    user.last_activity = None
+    user.save(update_fields=['last_activity'])
+    return Response({"message": "Successfully logged out."}, status=status.HTTP_200_OK)
 
 
 # ── Users CRUD ───────────────────────────────────────────────────────────────

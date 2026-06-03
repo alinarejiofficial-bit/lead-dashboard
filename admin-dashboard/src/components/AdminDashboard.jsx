@@ -424,8 +424,10 @@ export default function AdminDashboard({
                             </td>
                             <td>
                               <span className="users-table-cell">
-                                <span className={`user-status-dot ${u.status}`} />
-                                <span style={{ textTransform: 'capitalize', fontSize: '0.85rem' }}>{u.status}</span>
+                                <span className={`user-status-dot ${u.status === 'active' && (u.is_online || u.id === currentUser.id) ? 'active' : 'inactive'}`} />
+                                <span style={{ textTransform: 'capitalize', fontSize: '0.85rem' }}>
+                                  {u.status === 'inactive' ? 'Deactivated' : ((u.is_online || u.id === currentUser.id) ? 'Active' : 'Offline')}
+                                </span>
                               </span>
                             </td>
                             <td>

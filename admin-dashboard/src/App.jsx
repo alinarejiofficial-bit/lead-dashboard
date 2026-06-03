@@ -174,6 +174,13 @@ function App() {
       }
     };
     loadUsers();
+
+    const intervalId = setInterval(() => {
+      loadLeads();
+      loadUsers();
+    }, 10000);
+
+    return () => clearInterval(intervalId);
   }, [currentUser]);
 
   // Save changes helper
@@ -221,9 +228,16 @@ function App() {
     addLog(`${user.name} logged into the dashboard.`, 'note');
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     if (currentUser) {
       addLog(`${currentUser.name} signed out.`, 'note');
+      try {
+        await apiFetch('http://127.0.0.1:8000/api/auth/logout/', {
+          method: 'POST'
+        });
+      } catch (err) {
+        console.warn('Failed to notify backend of logout', err);
+      }
     }
     setCurrentUser(null);
     localStorage.removeItem('leadflow_current_user');

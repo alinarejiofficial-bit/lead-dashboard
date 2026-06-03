@@ -1,5 +1,6 @@
 from django.db import models
-from datetime import datetime
+from datetime import datetime, timedelta
+from django.utils import timezone
 from django.contrib.auth.hashers import make_password
 
 
@@ -49,6 +50,15 @@ class UserProfile(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
     color = models.CharField(max_length=20, default='#6359E9')
     joinedDate = models.CharField(max_length=20, blank=True, null=True)
+    last_activity = models.DateTimeField(null=True, blank=True)
+
+    @property
+    def is_online(self):
+        if self.status == 'inactive':
+            return False
+        if not self.last_activity:
+            return False
+        return timezone.now() - self.last_activity < timedelta(minutes=5)
 
     @property
     def is_authenticated(self):

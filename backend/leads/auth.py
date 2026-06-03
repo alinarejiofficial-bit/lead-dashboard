@@ -28,6 +28,11 @@ class UserProfileJWTAuthentication(authentication.BaseAuthentication):
             if user.status == 'inactive':
                 raise exceptions.AuthenticationFailed('This user account is inactive.')
                 
+            # Update user's last activity on every authenticated request
+            from django.utils import timezone
+            user.last_activity = timezone.now()
+            user.save(update_fields=['last_activity'])
+
             # Return authenticated user and token
             return (user, token)
         except Exception as e:

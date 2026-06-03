@@ -12,8 +12,9 @@ class LeadSerializer(serializers.ModelSerializer):
 
 class UserProfileSerializer(serializers.ModelSerializer):
     id = serializers.CharField(required=False)
+    is_online = serializers.ReadOnlyField()
 
     class Meta:
         model = UserProfile
-        fields = ['id', 'name', 'email', 'role', 'status', 'color', 'joinedDate']
+        fields = ['id', 'name', 'email', 'role', 'status', 'color', 'joinedDate', 'is_online']
         # password is intentionally excluded from responses

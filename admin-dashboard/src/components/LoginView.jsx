@@ -100,7 +100,7 @@ export default function LoginView({ onLogin }) {
         )}
 
         {/* Login Form */}
-        <form className="login-form" onSubmit={handleSubmit}>
+        <form className="login-form" onSubmit={handleSubmit} autoComplete="off">
           <div className="login-form-group">
             <label className="login-form-label" htmlFor="email-input">EMAIL ADDRESS</label>
             <div className="login-input-wrapper">
@@ -114,6 +114,7 @@ export default function LoginView({ onLogin }) {
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={loading}
                 required
+                autoComplete="off"
               />
             </div>
           </div>
@@ -131,6 +132,7 @@ export default function LoginView({ onLogin }) {
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={loading}
                 required
+                autoComplete="new-password"
               />
               <button
                 type="button"
