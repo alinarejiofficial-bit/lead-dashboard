@@ -1,0 +1,82 @@
+# ==========================================
+# Lead Management System - Master .gitignore
+# ==========================================
+
+# OS / System Files
+# -----------------
+.DS_Store
+.DS_Store?
+Thumbs.db
+ehthumbs.db
+[Dd]esktop.ini
+
+# IDEs & Editors
+# --------------
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.bak
+*.tmp
+*~
+
+# Node / JavaScript (Frontends)
+# -----------------------------
+node_modules/
+dist/
+dist-ssr/
+build/
+out/
+.next/
+.svelte-kit/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Python & Django (Backend)
+# -------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+backend/venv/
+backend/env/
+backend/ENV/
+backend/virtualenv/
+backend/dist/
+backend/build/
+backend/eggs/
+backend/parts/
+backend/bin/
+backend/var/
+backend/sdist/
+backend/develop-eggs/
+backend/downloads/
+backend/library/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Databases
+# ---------
+*.sqlite3
+*.db
+*.sql
+*.dump
+
+# Local Environment Variables & Secrets
+# -------------------------------------
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.local
+secrets.json
